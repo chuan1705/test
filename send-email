@@ -1,0 +1,93 @@
+ Sub vba提取文件名()
+
+    Dim FileName As String
+    Dim i As Long
+    FileName = Dir("D:\教师缴费卡赠送\11月\拆分部\*.*")
+    i = 1
+    Range("J2:J20").ClearContents
+    Do While FileName > ""
+    i = i + 1
+
+    Cells(i, 10) = FileName
+
+    FileName = Dir
+
+    Loop
+
+    End Sub
+
+
+Sub 批量发送邮件()
+
+'要能正确发送并需要对Microseft Outlook进行有效配置
+
+    On Error Resume Next
+
+    Dim rowCount, endRowNo
+
+    '要正常运行下面这句,要将工具/引用中的Microseft Outlook *.0 Object Library(其中*为你Microseft Outlook的版本号)选上
+
+    Dim objOutlook As New Outlook.Application
+
+    Dim objMail As MailItem
+
+    '取得当前工作表与Cells(1,1)相连的数据区行数
+
+    endRowNo = Cells(1, 1).CurrentRegion.Rows.Count
+
+    '创建objOutlook为Outlook应用程序对象
+
+    Set objOutlook = New Outlook.Application
+
+    '开始循环发送电子邮件
+
+    For rowCount = 2 To endRowNo
+
+        '创建objMail为一个邮件对象
+
+        Set objMail = objOutlook.CreateItem(olMailItem)
+
+        With objMail
+
+            '设置收件人地址（从通讯录表的'E-mail地址'字段中获得）
+
+            .To = Cells(rowCount, 1)
+            .CC = Cells(rowCount, 5)
+
+
+            '设置邮件主题
+
+            .Subject = Cells(rowCount, 2)
+
+            '设置邮件内容（从通讯录表的'内容'字段中获得）
+
+            .Body = Cells(rowCount, 3)
+
+            '设置附件（从通讯录表的'附件'字段中获得）
+
+            .Attachments.Add Cells(rowCount, 4).Value
+            '自动发送邮件
+
+            .Send
+
+        End With
+
+        '销毁objMail对象
+
+        Set objMail = Nothing
+
+    Next
+
+
+    '销毁objOutlook对象
+    Set objOutlook = Nothing
+    '所有电子邮件发送完成时提示
+    MsgBox rowCount - 2 & "个朋友的问候信发送成功！"
+    '
+    If Application.Workbooks.Count = 1 Then
+        Application.Quit
+    Else
+        Workbooks("自动发送邮件.xls").Close
+    End If
+    '
+End Sub
